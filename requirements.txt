@@ -1,0 +1,2 @@
+supervisely==6.69.76
+scikit-learn

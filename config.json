@@ -1,0 +1,22 @@
+{
+  "type": "app",
+  "version": "2.0.0",
+  "name": "Classification metrics",
+  "description": "Evaluate your classification model",
+  "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
+  "port": 8000,
+  "icon": "https://user-images.githubusercontent.com/97401023/216119687-69ba445b-95a9-4353-8663-6d7352b3fbb3.png",
+  "icon_background": "#FFFFFF",
+  "poster": "https://user-images.githubusercontent.com/97401023/216125503-54544e16-a36e-453f-9b23-ba7729adb3e8.png",
+  "categories": [
+    "neural network",
+    "classification",
+    "images",
+    "nn tools",
+    "visualization",
+    "exploration",
+    "statistics",
+    "visualization stats"
+  ],
+  "min_instance_version": "6.6.7"
+}
