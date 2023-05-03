@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 import supervisely as sly
-from dotenv import load_dotenv
-import os
-import pickle
+from src.globals import *
 
 from . import utils
 from .data_iterator import DataIteratorAPI
@@ -28,42 +26,6 @@ from supervisely.app.widgets import (
 )
 
 
-load_dotenv("local.env")
-load_dotenv(os.path.expanduser("~/supervisely.env"))
-
-api = sly.Api()
-
-project_id_gt = 20645
-project_id_pred = 20644
-
-
-# meta
-meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id_gt))
-categories = [{"id": i, "name": obj_cls.name} for i, obj_cls in enumerate(meta.obj_classes)]
-category_name_to_id = {c["name"]: c["id"] for c in categories}
-_datasets = api.dataset.get_list(project_id_gt)
-dataset_ids_gt = [ds.id for ds in _datasets]
-dataset_names_gt = pd.Series({ds.id: ds.name for ds in _datasets})
-image_ids = []
-image_id_2_image_info = {img.id: img for ds in _datasets for img in api.image.get_list(ds.id)}
-
-# CM is of shape [GT x Pred]
-NONE_CLS = "None"
-cm_categories = list(map(lambda x: x["name"], categories)) + [NONE_CLS]
-
-
-df = pd.read_csv("df.csv", index_col=0)
-
-
-with open("metrics.pkl", "rb") as f:
-    confusion_matrix, stats, coco = pickle.load(f)
-    overall_coco, per_dataset_coco, per_class_coco = coco
-    overall_stats, per_dataset_stats, per_class_stats = stats
-
-
-### -------------------- ###
-
-
 ### Confusion Matrix
 confusion_matrix_widget = ConfusionMatrix()
 
@@ -79,7 +41,7 @@ overall_tab = Container([overall_table, overall_per_dataset_table])
 
 
 ### Per-class
-t = utils.collect_per_class_metrics(per_class_stats, per_class_coco, category_name_to_id)
+t = utils.collect_per_class_metrics(per_class_stats, per_class_coco, categories_selected)
 per_class_table = Table(t)
 per_class_tab = Container([per_class_table])
 
@@ -105,7 +67,9 @@ preview_container = Container([card_gallery, card_img_table], "horizontal")
 
 
 # Set up confusion_matrix_widget
-confusion_matrix_df = pd.DataFrame(confusion_matrix, columns=cm_categories, index=cm_categories)
+confusion_matrix_df = pd.DataFrame(
+    confusion_matrix, columns=cm_categories_selected, index=cm_categories_selected
+)
 confusion_matrix_widget._update_matrix_data(confusion_matrix_df)
 confusion_matrix_widget.update_data()
 DataJson().send_changes()
@@ -153,9 +117,14 @@ def show_preview(image_id):
     preview_gallery.loading = True
     preview_gallery.clean_up()
     image_info = image_id_2_image_info[image_id]
-    ann = sly.Annotation.from_json(api.annotation.download_json(image_id), meta)
-    preview_gallery.append(image_info.preview_url, ann, title="Ground Truth")
-    preview_gallery.append(image_info.preview_url, ann, title="Predicted")
+    image_id_pred = image_ids_gt2pred[image_id]
+    img_pred = api.image.get_info_by_id(image_id_pred)
+    ann_gt = sly.Annotation.from_json(api.annotation.download_json(image_id), project_meta_gt)
+    ann_pred = sly.Annotation.from_json(
+        api.annotation.download_json(image_id_pred), project_meta_pred
+    )
+    preview_gallery.append(image_info.preview_url, ann_gt, title="Ground Truth")
+    preview_gallery.append(img_pred.preview_url, ann_pred, title="Predicted")
     preview_gallery.loading = False
 
     t = utils.per_object_metrics(df, image_id)

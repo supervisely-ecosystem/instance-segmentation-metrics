@@ -112,7 +112,7 @@ def collect_df_rows(
     #     "gt_class",
     #     "pred_class",
     #     "class_match",
-    #     "iou",
+    #     "IoU",
     #     "image_id",
     #     "dataset_id",
     #     "gt_label_id",
@@ -177,7 +177,7 @@ def create_df(df_rows):
         "gt_class",
         "pred_class",
         "class_match",
-        "iou",
+        "IoU",
         "image_id",
         "dataset_id",
         "gt_label_id",
@@ -197,15 +197,16 @@ def calculate_confusion_matrix(df, cm_categories):
 
 
 # per-class + avg: P/R/F1
-def calculate_metrics(df, cm_categories, dataset_ids_gt, NONE_CLS):
+def calculate_metrics(df, cm_categories: list, dataset_ids_gt, NONE_CLS):
     gt_classes = df["gt_class"].to_list()
     pred_classes = df["pred_class"].to_list()
 
     # Get some per-class stats (classification_report)
+    cm_categories = cm_categories.copy()
+    cm_categories.remove(NONE_CLS)
     per_class_stats = sklearn.metrics.classification_report(
         gt_classes, pred_classes, labels=cm_categories, output_dict=True
     )
-    per_class_stats.pop(NONE_CLS)
 
     # Get some overall stats
     overall_stats = {}
@@ -223,8 +224,8 @@ def calculate_metrics(df, cm_categories, dataset_ids_gt, NONE_CLS):
         pred = cls_filtered["pred_class"].to_list()
         gt = [int(x == cls) for x in gt]
         pred = [int(x == cls) for x in pred]
-        AP = sklearn.metrics.average_precision_score(gt, pred) if gt and pred else -1
-        avg_iou = cls_filtered["iou"].mean()
+        AP = sklearn.metrics.average_precision_score(gt, pred) if len(gt) and len(pred) else -1
+        avg_iou = cls_filtered["IoU"].mean()
         per_class_stats[cls]["IoU"] = avg_iou
         per_class_stats[cls]["AP"] = AP
 
@@ -250,10 +251,10 @@ def calculate_metrics(df, cm_categories, dataset_ids_gt, NONE_CLS):
             pred = cls_filtered["pred_class"].to_list()
             gt = [int(x == cls) for x in gt]
             pred = [int(x == cls) for x in pred]
-            if gt and pred:
+            if len(gt) and len(pred):
                 AP = sklearn.metrics.average_precision_score(gt, pred)
                 AP_per_class.append(AP)
-            avg_iou = cls_filtered["iou"].mean()
+            avg_iou = cls_filtered["IoU"].mean()
             ious_per_class.append(avg_iou)
         mAP = np.mean(AP_per_class)
         mIoU = np.nanmean(ious_per_class)
@@ -265,7 +266,7 @@ def calculate_metrics(df, cm_categories, dataset_ids_gt, NONE_CLS):
 # Per-image
 def per_image_metrics(df, image_id, NONE_CLS):
     df_img = df[df["image_id"] == image_id]
-    avg_iou = df_img["iou"].mean()
+    avg_iou = df_img["IoU"].mean()
     TP = (df_img["gt_class"] == df_img["pred_class"]).sum()
     FP = (df_img["class_match"].isna() & (df_img["gt_class"] == NONE_CLS)).sum()
     FN = (df_img["class_match"].isna() & (df_img["pred_class"] == NONE_CLS)).sum()
@@ -294,7 +295,7 @@ def per_image_metrics_for_group(df_group, NONE_CLS):
     FN = (df_group["class_match"].isna() & (df_group["pred_class"] == NONE_CLS)).sum()
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
-    avg_iou = df_group["iou"].mean()
+    avg_iou = df_group["IoU"].mean()
     return TP, FP, FN, precision, recall, avg_iou
 
 
@@ -452,7 +453,7 @@ def collect_overall_metrics(overall_stats: dict, overall_coco: np.ndarray):
         "recall": macro["recall"],
         "f1-score": macro["f1-score"],
         "mAP": overall_stats["mAP"],
-        "mIoU": overall_stats["mIoU"],
+        "mIoU (mask)": overall_stats["mIoU"],
     }
     res = {k: [v] for k, v in res.items()}
     res = format_table(res)
@@ -470,7 +471,7 @@ def collect_per_dataset_metrics(
             "dataset_id": dataset_id,
             "dataset": dataset_names_gt[dataset_id],
             **coco_stats_to_dict(per_dataset_coco[dataset_id]),
-            "mIoU": per_dataset_stats[dataset_id]["mIoU"],
+            "mIoU (mask)": per_dataset_stats[dataset_id]["mIoU"],
         }
         for dataset_id in dataset_ids_gt
     ]
@@ -478,16 +479,16 @@ def collect_per_dataset_metrics(
     return res
 
 
-def collect_per_class_metrics(per_class_stats: dict, per_class_coco: dict, category_name_to_id):
+def collect_per_class_metrics(per_class_stats: dict, per_class_coco: dict, categories: list):
     # per_class_stats - class_name : dict
     # per_class_coco - class_id : np.array
     res = [
         {
-            "class": class_name,
-            **coco_stats_to_dict(per_class_coco[class_id]),
-            **per_class_stats[class_name],
+            "class": cat["name"],
+            **coco_stats_to_dict(per_class_coco[cat["id"]]),
+            **per_class_stats[cat["name"]],
         }
-        for class_name, class_id in category_name_to_id.items()
+        for cat in categories
     ]
     res = format_table2(res)
     return res

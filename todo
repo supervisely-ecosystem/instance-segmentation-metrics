@@ -1,7 +1,7 @@
-сделать match projects
+собрать конечное приложение из двух частей (match + metrics)
 
-разобраться с classifictaion_report
-
-правильно показывать predicted image in preview_gallery
-
+---
+показывать в preview_table только выбранный confusion (gt/pred)
+переименовать все tags в classes
 фильтровать аннотации по клику в preview_table
+убрать хардкоды в globals
