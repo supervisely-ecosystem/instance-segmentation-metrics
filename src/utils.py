@@ -1,6 +1,21 @@
+import pandas as pd
 from src.data_iterator import DataIteratorAPI
 import supervisely as sly
 import numpy as np
+import sklearn.metrics
+from pycocotools import mask, cocoeval, coco
+
+
+try:
+    import pyximport
+
+    pyximport.install(setup_args={"include_dirs": np.get_include()}, reload_support=False)
+    from .compute_overlap import compute_overlap
+except:
+    print(
+        "Couldn't import fast version of function compute_overlap, will use slow one. Check cython installation"
+    )
+    from compute_overlap_slow import compute_overlap
 
 
 def uncrop_bitmap(bitmap: sly.Bitmap, image_width, image_height):
@@ -87,3 +102,392 @@ def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.25):
             unmatched_idxs_pred.remove(pred_i)
 
     return matched_idxs, list(unmatched_idxs_gt), list(unmatched_idxs_pred), ious_matched
+
+
+def collect_df_rows(
+    image_item_gt: DataIteratorAPI.ImageItem, image_item_pred: DataIteratorAPI.ImageItem, NONE_CLS
+):
+    # Remembering column names:
+    # df_columns = [
+    #     "gt_class",
+    #     "pred_class",
+    #     "class_match",
+    #     "iou",
+    #     "image_id",
+    #     "dataset_id",
+    #     "gt_label_id",
+    #     "pred_label_id",
+    # ]
+
+    rows = []
+    image_id = image_item_gt.image_id
+    dataset_id = image_item_gt.dataset_id
+
+    labels_gt, classes_gt, bboxes_gt, bitmaps_gt = collect_labels(image_item_gt)
+    labels_pred, classes_pred, bboxes_pred, bitmaps_pred = collect_labels(image_item_pred)
+
+    # [Pred x GT]
+    pairwise_iou = compute_overlap(
+        np.array(bboxes_pred, dtype=np.float64), np.array(bboxes_gt, dtype=np.float64)
+    )
+
+    # below this threshold we treat two bboxes don't match
+    min_iou_threshold = 0.25
+    matched_idxs, unmatched_idxs_gt, unmatched_idxs_pred, box_ious_matched = match_bboxes(
+        pairwise_iou, min_iou_threshold
+    )
+
+    for i_gt, i_pred in matched_idxs:
+        class_gt = classes_gt[i_gt]
+        class_pred = classes_pred[i_pred]
+        class_match = class_gt == class_pred
+        mask1, mask2 = join_bitmaps_tight(bitmaps_gt[i_gt], bitmaps_pred[i_pred])
+        iou = iou_numpy(mask1, mask2)
+        gt_label_id = bitmaps_gt[i_gt].sly_id
+        pred_label_id = bitmaps_pred[i_pred].sly_id
+        row = [
+            class_gt,
+            class_pred,
+            class_match,
+            iou,
+            image_id,
+            dataset_id,
+            gt_label_id,
+            pred_label_id,
+        ]
+        rows.append(row)
+
+    for idx in unmatched_idxs_gt:
+        cls = classes_gt[idx]
+        gt_label_id = bitmaps_gt[idx].sly_id
+        row = [cls, NONE_CLS, None, None, image_id, dataset_id, gt_label_id, -1]
+        rows.append(row)
+
+    for idx in unmatched_idxs_pred:
+        cls = classes_pred[idx]
+        pred_label_id = bitmaps_pred[idx].sly_id
+        row = [NONE_CLS, cls, None, None, image_id, dataset_id, -1, pred_label_id]
+        rows.append(row)
+
+    return rows
+
+
+def create_df(df_rows):
+    df_columns = [
+        "gt_class",
+        "pred_class",
+        "class_match",
+        "iou",
+        "image_id",
+        "dataset_id",
+        "gt_label_id",
+        "pred_label_id",
+    ]
+    df = pd.DataFrame(df_rows, columns=df_columns)
+    return df
+
+
+def calculate_confusion_matrix(df, cm_categories):
+    gt_classes = df["gt_class"].to_list()
+    pred_classes = df["pred_class"].to_list()
+    confusion_matrix = sklearn.metrics.confusion_matrix(
+        gt_classes, pred_classes, labels=cm_categories
+    )
+    return confusion_matrix
+
+
+# per-class + avg: P/R/F1
+def calculate_metrics(df, cm_categories, dataset_ids_gt, NONE_CLS):
+    gt_classes = df["gt_class"].to_list()
+    pred_classes = df["pred_class"].to_list()
+
+    # Get some per-class stats (classification_report)
+    per_class_stats = sklearn.metrics.classification_report(
+        gt_classes, pred_classes, labels=cm_categories, output_dict=True
+    )
+    per_class_stats.pop(NONE_CLS)
+
+    # Get some overall stats
+    overall_stats = {}
+    overall_keys = ["micro avg", "macro avg", "weighted avg"]
+    for key in overall_keys:
+        overall_stats[key] = per_class_stats.pop(key)
+
+    # Per-class stats (IoU + AP)
+    class2image_ids = {}  # image_id in GT
+    for cls in cm_categories:
+        if cls == NONE_CLS:
+            continue
+        cls_filtered = df[(df["gt_class"] == cls) | (df["pred_class"] == cls)]
+        gt = cls_filtered["gt_class"].to_list()
+        pred = cls_filtered["pred_class"].to_list()
+        gt = [int(x == cls) for x in gt]
+        pred = [int(x == cls) for x in pred]
+        AP = sklearn.metrics.average_precision_score(gt, pred) if gt and pred else -1
+        avg_iou = cls_filtered["iou"].mean()
+        per_class_stats[cls]["IoU"] = avg_iou
+        per_class_stats[cls]["AP"] = AP
+
+        class2image_ids[cls] = list(set(cls_filtered["image_id"]))
+
+    # Overall for per-class avg.
+    overall_stats["mAP"] = np.mean([x["AP"] for x in per_class_stats.values() if x["AP"] != -1])
+    overall_stats["mIoU"] = np.nanmean([x["IoU"] for x in per_class_stats.values()])
+
+    # Per-dataset stats (IoU + AP)
+    per_dataset_stats = {}  # dataset_id to stats
+    for dataset_id in dataset_ids_gt:
+        AP_per_class = []
+        ious_per_class = []
+        for cls in cm_categories:
+            if cls == NONE_CLS:
+                continue
+            cls_filtered = df[
+                (df["dataset_id"] == dataset_id)
+                & ((df["gt_class"] == cls) | (df["pred_class"] == cls))
+            ]
+            gt = cls_filtered["gt_class"].to_list()
+            pred = cls_filtered["pred_class"].to_list()
+            gt = [int(x == cls) for x in gt]
+            pred = [int(x == cls) for x in pred]
+            if gt and pred:
+                AP = sklearn.metrics.average_precision_score(gt, pred)
+                AP_per_class.append(AP)
+            avg_iou = cls_filtered["iou"].mean()
+            ious_per_class.append(avg_iou)
+        mAP = np.mean(AP_per_class)
+        mIoU = np.nanmean(ious_per_class)
+        per_dataset_stats[dataset_id] = {"mAP": mAP, "mIoU": mIoU}
+
+    return overall_stats, per_dataset_stats, per_class_stats
+
+
+# Per-image
+def per_image_metrics(df, image_id, NONE_CLS):
+    df_img = df[df["image_id"] == image_id]
+    avg_iou = df_img["iou"].mean()
+    TP = (df_img["gt_class"] == df_img["pred_class"]).sum()
+    FP = (df_img["class_match"].isna() & (df_img["gt_class"] == NONE_CLS)).sum()
+    FN = (df_img["class_match"].isna() & (df_img["pred_class"] == NONE_CLS)).sum()
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    return TP, FP, FN, precision, recall, avg_iou
+
+
+def per_image_metrics_table(df_match, dataset_names_gt, NONE_CLS):
+    columns_metrics = ["TP", "FP", "FN", "precision", "recall", "Avg. IoU"]
+    columns = ["image_id", "dataset", *columns_metrics]
+    rows = []
+    for img_id, g in df_match.groupby("image_id"):
+        row = per_image_metrics_for_group(g, NONE_CLS)
+        dataset_id = g["dataset_id"].values[0]
+        dataset_name = dataset_names_gt[dataset_id]
+        row = [img_id, dataset_name, *row]
+        rows.append(row)
+    table = pd.DataFrame(rows, columns=columns)
+    return table
+
+
+def per_image_metrics_for_group(df_group, NONE_CLS):
+    TP = (df_group["gt_class"] == df_group["pred_class"]).sum()
+    FP = (df_group["class_match"].isna() & (df_group["gt_class"] == NONE_CLS)).sum()
+    FN = (df_group["class_match"].isna() & (df_group["pred_class"] == NONE_CLS)).sum()
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    avg_iou = df_group["iou"].mean()
+    return TP, FP, FN, precision, recall, avg_iou
+
+
+# Per-object
+def per_object_metrics(df, image_id):
+    res = df[df["image_id"] == image_id]
+    res = res.drop(columns=["gt_label_id", "pred_label_id", "dataset_id"])
+    return res
+
+
+def create_coco_annotation(mask_np, id, image_id, category_id, confidence=None):
+    segmentation = mask.encode(np.asfortranarray(mask_np))
+    segmentation["counts"] = segmentation["counts"].decode()
+    annotation = {
+        "id": id,  # unique id for each annotation
+        "image_id": image_id,
+        "category_id": category_id,
+        "segmentation": segmentation,
+        "iscrowd": 0,
+    }
+    if confidence is not None:
+        annotation["score"] = confidence
+    return annotation
+
+
+def collect_coco_annotations(
+    image_item: DataIteratorAPI.ImageItem,
+    category_name_to_id: dict,
+    is_pred,
+    image_id=None,
+    dataset_id=None,
+):
+    if image_id is None:
+        image_id = image_item.image_id
+
+    if dataset_id is None:
+        dataset_id = image_item.dataset_id
+
+    image_info = {
+        "dataset_id": dataset_id,
+        "id": image_id,
+        "height": image_item.image_height,
+        "width": image_item.image_width,
+    }
+
+    image_annotations = []
+
+    for item in image_item.labels_iterator:
+        if not isinstance(item.label.geometry, sly.Bitmap):
+            continue
+        category_id = category_name_to_id[item.label.obj_class.name]
+        mask_np = uncrop_bitmap(item.label.geometry, item.image_width, item.image_height)
+        label_id = item.label.geometry.sly_id
+        confidence = None
+        if is_pred:
+            confidence = item.label.tags.get("confidence").value
+        annotation = create_coco_annotation(
+            mask_np, label_id, image_id, category_id, confidence=confidence
+        )
+        image_annotations.append(annotation)
+
+    return image_info, image_annotations
+
+
+def create_coco_apis(images_coco, annotations_gt, annotations_pred, categories):
+    # Create COCO format dictionary
+    coco_json = {
+        "info": {},
+        "licenses": [],
+        "categories": categories,
+        "images": images_coco,
+        "annotations": annotations_gt,
+    }
+
+    # Save annotations to json
+    sly.json.dump_json_file(coco_json, "ground_truth.json", indent=None)
+
+    # GT
+    coco_gt = coco.COCO("ground_truth.json")
+    ann_ids = coco_gt.getAnnIds()
+    coco_gt = coco_gt.loadRes(coco_gt.loadAnns(ann_ids))
+
+    # Pred
+    coco_dt = coco_gt.loadRes(annotations_pred)
+
+    return coco_gt, coco_dt
+
+
+# COCO Per-dataset
+def per_dataset_metrics_coco(coco_gt, coco_dt, dataset_id, images_coco):
+    img_ids_for_dataset = [img["id"] for img in images_coco if img["dataset_id"] == dataset_id]
+    e = cocoeval.COCOeval(coco_gt, coco_dt)
+    e.params.areaRng = [e.params.areaRng[0]]
+    e.params.areaRngLbl = [e.params.areaRngLbl[0]]
+    e.params.imgIds = img_ids_for_dataset
+    e.evaluate()
+    e.accumulate()
+    e.summarize()
+    return e.stats
+
+
+# COCO Per-class
+def per_class_metrics_coco(coco_gt, coco_dt, category_id):
+    e = cocoeval.COCOeval(coco_gt, coco_dt)
+    e.params.areaRng = [e.params.areaRng[0]]
+    e.params.areaRngLbl = [e.params.areaRngLbl[0]]
+    e.params.catIds = [category_id]
+    e.evaluate()
+    e.accumulate()
+    e.summarize()
+    return e.stats
+
+
+# COCO overall
+def overall_metrics_coco(coco_gt, coco_dt):
+    e = cocoeval.COCOeval(coco_gt, coco_dt)
+    e.params.areaRng = [e.params.areaRng[0]]
+    e.params.areaRngLbl = [e.params.areaRngLbl[0]]
+    e.evaluate()
+    e.accumulate()
+    e.summarize()
+    return e.stats
+
+
+def coco_stats_to_dict(coco_stats: np.ndarray):
+    return {
+        "mAP@0.50:0.95 (COCO)": coco_stats[0],
+        "mAP@0.50 (COCO)": coco_stats[1],
+        "mAP@0.75 (COCO)": coco_stats[2],
+        "Average Recall (COCO)": coco_stats[8],
+    }
+
+
+def format_table(t: dict, n_digits=6):
+    # col : [rows]
+    return {
+        k: [round(float(x), n_digits) if isinstance(x, float) else x for x in rows]
+        for k, rows in t.items()
+    }
+
+
+def format_table2(t: dict, n_digits=6):
+    # [rows]
+    return [
+        {k: round(float(x), n_digits) if isinstance(x, float) else x for k, x in row.items()}
+        for row in t
+    ]
+
+
+def collect_overall_metrics(overall_stats: dict, overall_coco: np.ndarray):
+    macro = overall_stats["macro avg"]
+    res = {
+        **coco_stats_to_dict(overall_coco),
+        "precision": macro["precision"],
+        "recall": macro["recall"],
+        "f1-score": macro["f1-score"],
+        "mAP": overall_stats["mAP"],
+        "mIoU": overall_stats["mIoU"],
+    }
+    res = {k: [v] for k, v in res.items()}
+    res = format_table(res)
+    return res
+
+
+def collect_per_dataset_metrics(
+    per_dataset_stats: dict,
+    per_dataset_coco: np.ndarray,
+    dataset_ids_gt: list,
+    dataset_names_gt: dict,
+):
+    res = [
+        {
+            "dataset_id": dataset_id,
+            "dataset": dataset_names_gt[dataset_id],
+            **coco_stats_to_dict(per_dataset_coco[dataset_id]),
+            "mIoU": per_dataset_stats[dataset_id]["mIoU"],
+        }
+        for dataset_id in dataset_ids_gt
+    ]
+    res = format_table2(res)
+    return res
+
+
+def collect_per_class_metrics(per_class_stats: dict, per_class_coco: dict, category_name_to_id):
+    # per_class_stats - class_name : dict
+    # per_class_coco - class_id : np.array
+    res = [
+        {
+            "class": class_name,
+            **coco_stats_to_dict(per_class_coco[class_id]),
+            **per_class_stats[class_name],
+        }
+        for class_name, class_id in category_name_to_id.items()
+    ]
+    res = format_table2(res)
+    return res
