@@ -115,15 +115,15 @@ def show_preview(image_id):
     preview_gallery.loading = False
 
     t = utils.per_object_metrics(g.df, image_id)
-    t[t["gt_class"] == g.NONE_CLS]["gt_class"] = ""
-    t[t["pred_class"] == g.NONE_CLS]["pred_class"] = ""
+    t.loc[t["gt_class"] == g.NONE_CLS, "gt_class"] = ""
+    t.loc[t["pred_class"] == g.NONE_CLS, "pred_class"] = ""
     preview_table.read_pandas(t)
 
 
 ### Set up widgets
 def setup_widgets():
     confusion_matrix_df = pd.DataFrame(
-        g.confusion_matrix, columns=g.cm_categories_selected, index=g.cm_categories_selected
+        g.confusion_matrix, columns=g.cm_used_classes, index=g.cm_used_classes
     )
     confusion_matrix_widget._update_matrix_data(confusion_matrix_df)
     confusion_matrix_widget.update_data()
@@ -137,7 +137,10 @@ def setup_widgets():
     )
     overall_per_dataset_table.read_pandas(pd.DataFrame(t))
 
-    t = utils.collect_per_class_metrics(g.per_class_stats, g.per_class_coco, g.categories_selected)
+    categories = [
+        {"id": g.category_name_to_id[cls_name], "name": cls_name} for cls_name in g.used_classes
+    ]
+    t = utils.collect_per_class_metrics(g.per_class_stats, g.per_class_coco, categories)
     per_class_table.read_pandas(pd.DataFrame(t))
 
     tabs_card.uncollapse()

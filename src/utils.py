@@ -213,16 +213,22 @@ def calculate_confusion_matrix(df, cm_categories):
     return confusion_matrix
 
 
+def get_unique_classes(gt_classes: list, pred_classes: list, NONE_CLS: str):
+    used_classes = set(gt_classes) | set(pred_classes)
+    if NONE_CLS in used_classes:
+        used_classes.remove(NONE_CLS)
+    used_classes = list(used_classes)
+    return used_classes
+
+
 # per-class + avg: P/R/F1
-def calculate_metrics(df, cm_categories: list, dataset_ids, NONE_CLS):
+def calculate_metrics(df, used_classes: list, dataset_ids, NONE_CLS):
     gt_classes = df["gt_class"].to_list()
     pred_classes = df["pred_class"].to_list()
 
     # Get some per-class stats (classification_report)
-    cm_categories = cm_categories.copy()
-    cm_categories.remove(NONE_CLS)
     per_class_stats = sklearn.metrics.classification_report(
-        gt_classes, pred_classes, labels=cm_categories, output_dict=True
+        gt_classes, pred_classes, labels=used_classes, output_dict=True
     )
 
     # Get some overall stats
@@ -235,7 +241,7 @@ def calculate_metrics(df, cm_categories: list, dataset_ids, NONE_CLS):
 
     # Per-class stats (IoU + AP)
     class2image_ids = {}  # image_id in GT
-    for cls in cm_categories:
+    for cls in used_classes:
         if cls == NONE_CLS:
             continue
         cls_filtered = df[(df["gt_class"] == cls) | (df["pred_class"] == cls)]
@@ -260,7 +266,7 @@ def calculate_metrics(df, cm_categories: list, dataset_ids, NONE_CLS):
         # AP_per_class = []
         ious_per_class = []
         dataset_mask = df["dataset_id"] == dataset_id
-        for cls in cm_categories:
+        for cls in used_classes:
             if cls == NONE_CLS:
                 continue
             cls_filtered = df[dataset_mask & ((df["gt_class"] == cls) | (df["pred_class"] == cls))]
@@ -279,8 +285,9 @@ def calculate_metrics(df, cm_categories: list, dataset_ids, NONE_CLS):
         ds_filtered = df[dataset_mask]
         ds_gt_classes = ds_filtered["gt_class"].to_list()
         ds_pred_classes = ds_filtered["pred_class"].to_list()
+        ds_used_classes = get_unique_classes(ds_gt_classes, ds_pred_classes, NONE_CLS)
         ds_cls_report = sklearn.metrics.classification_report(
-            ds_gt_classes, ds_pred_classes, labels=cm_categories, output_dict=True
+            ds_gt_classes, ds_pred_classes, labels=ds_used_classes, output_dict=True
         )
 
         # per_dataset_stats[dataset_id] = {"mAP": mAP, "mIoU": mIoU}

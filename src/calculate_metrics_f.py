@@ -6,7 +6,7 @@ from src import globals as g
 
 
 def calculate_metrics(ds_match):
-    # populates globals: g.df, g.image_ids, g.image_ids_gt2pred, g.dataset_ids_matched
+    # populates globals: g.df, g.image_ids, g.image_ids_gt2pred, g.dataset_ids_matched, g.used_classes
 
     df_rows = []
     images_coco = []
@@ -75,16 +75,20 @@ def calculate_metrics(ds_match):
     df = utils.create_df(df_rows)
 
     # Metrics
-    confusion_matrix = utils.calculate_confusion_matrix(df, g.cm_categories_selected)
+    gt_classes = df["gt_class"].to_list()
+    pred_classes = df["pred_class"].to_list()
+    g.used_classes = utils.get_unique_classes(gt_classes, pred_classes, g.NONE_CLS)
+    g.cm_used_classes = g.used_classes + [g.NONE_CLS]
+    confusion_matrix = utils.calculate_confusion_matrix(df, g.cm_used_classes)
 
     overall_stats, per_dataset_stats, per_class_stats = utils.calculate_metrics(
-        df, g.cm_categories_selected, g.dataset_ids_matched, g.NONE_CLS
+        df, g.used_classes, g.dataset_ids_matched, g.NONE_CLS
     )
 
     overall_coco = utils.overall_metrics_coco(coco_gt, coco_dt)
 
     per_class_coco = {}
-    for cat_name in g.cm_categories_selected[:-1]:
+    for cat_name in g.used_classes:
         cat_id = g.category_name_to_id[cat_name]
         class_metrics = utils.per_class_metrics_coco(coco_gt, coco_dt, cat_id)
         per_class_coco[cat_id] = class_metrics

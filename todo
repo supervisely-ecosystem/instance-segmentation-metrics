@@ -1,11 +1,11 @@
-неправильный cls_report (cm_categories)
+неправильные значения cls_report (cm_categories)
+    recall все равно не тот (потмоу что он где-то 0)
 
 убрать хардкоды в globals
 
 ---
 показывать в preview_table только выбранный confusion (gt/pred)
 фильтровать аннотации по клику в preview_table
-замена None на пустоту в preview table
 переименовать все tags в classes
 добавить описания (sly fields)
 add progress_bar

@@ -30,6 +30,8 @@ image_ids = []
 image_ids_gt2pred = {}
 dataset_ids_matched = []
 selected_classes = []  # ["car", "person"]
+used_classes = []
+cm_used_classes = []
 ds_match = None
 
 # calculated metrics
@@ -57,21 +59,5 @@ def init_globals_for_metrics():
     dataset_name_to_id = {d.name: d.id for d in _datasets}
     image_id_2_image_info = {img.id: img for ds in _datasets for img in api.image.get_list(ds.id)}
 
-    categories_selected = [c for c in categories if c["name"] in selected_classes]
-    cm_categories_selected = selected_classes + [NONE_CLS]
-
-
-# df = pd.read_csv("df.csv", index_col=0)
-
-# with open("metrics.pkl", "rb") as f:
-#     confusion_matrix, stats, coco = pickle.load(f)
-#     overall_coco, per_dataset_coco, per_class_coco = coco
-#     overall_stats, per_dataset_stats, per_class_stats = stats
-
-# with open("image_ids_gt2pred.pkl", "rb") as f:
-#     image_ids_gt2pred = pickle.load(f)
-
-# # selected
-# selected_classes = ["car", "person"]
-# categories_selected = [c for c in categories if c["name"] in selected_classes]
-# cm_categories_selected = selected_classes + [NONE_CLS]
+    # categories_selected = [c for c in categories if c["name"] in selected_classes]
+    # cm_categories_selected = selected_classes + [NONE_CLS]
