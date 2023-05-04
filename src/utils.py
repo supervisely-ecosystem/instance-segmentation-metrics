@@ -64,11 +64,14 @@ def iou_numpy(mask_pred: np.ndarray, mask_gt: np.ndarray):
     return iou
 
 
-def collect_labels(image_item: DataIteratorAPI.ImageItem):
+def collect_labels(image_item: DataIteratorAPI.ImageItem, category_name_to_id):
     labels, classes, bboxes, bitmaps = [], [], [], []
 
     for item in image_item.labels_iterator:
         if not isinstance(item.label.geometry, sly.Bitmap):
+            continue
+        class_name = item.label.obj_class.name
+        if class_name not in category_name_to_id:
             continue
         label = item.label
         rect = label.geometry.to_bbox()
@@ -105,7 +108,10 @@ def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.25):
 
 
 def collect_df_rows(
-    image_item_gt: DataIteratorAPI.ImageItem, image_item_pred: DataIteratorAPI.ImageItem, NONE_CLS
+    image_item_gt: DataIteratorAPI.ImageItem,
+    image_item_pred: DataIteratorAPI.ImageItem,
+    NONE_CLS: str,
+    category_name_to_id: dict,
 ):
     # Remembering column names:
     # df_columns = [
@@ -123,19 +129,30 @@ def collect_df_rows(
     image_id = image_item_gt.image_id
     dataset_id = image_item_gt.dataset_id
 
-    labels_gt, classes_gt, bboxes_gt, bitmaps_gt = collect_labels(image_item_gt)
-    labels_pred, classes_pred, bboxes_pred, bitmaps_pred = collect_labels(image_item_pred)
-
-    # [Pred x GT]
-    pairwise_iou = compute_overlap(
-        np.array(bboxes_pred, dtype=np.float64), np.array(bboxes_gt, dtype=np.float64)
+    labels_gt, classes_gt, bboxes_gt, bitmaps_gt = collect_labels(
+        image_item_gt, category_name_to_id
+    )
+    labels_pred, classes_pred, bboxes_pred, bitmaps_pred = collect_labels(
+        image_item_pred, category_name_to_id
     )
 
-    # below this threshold we treat two bboxes don't match
-    min_iou_threshold = 0.25
-    matched_idxs, unmatched_idxs_gt, unmatched_idxs_pred, box_ious_matched = match_bboxes(
-        pairwise_iou, min_iou_threshold
-    )
+    if len(bboxes_gt) == 0 and len(bboxes_pred) == 0:
+        return []
+
+    if len(bboxes_gt) != 0 and len(bboxes_pred) != 0:
+        # [Pred x GT]
+        pairwise_iou = compute_overlap(
+            np.array(bboxes_pred, dtype=np.float64), np.array(bboxes_gt, dtype=np.float64)
+        )
+        # below this threshold we treat two bboxes don't match
+        min_iou_threshold = 0.25
+        matched_idxs, unmatched_idxs_gt, unmatched_idxs_pred, box_ious_matched = match_bboxes(
+            pairwise_iou, min_iou_threshold
+        )
+    else:
+        matched_idxs = []
+        unmatched_idxs_gt = list(range(len(bboxes_gt)))
+        unmatched_idxs_pred = list(range(len(bboxes_pred)))
 
     for i_gt, i_pred in matched_idxs:
         class_gt = classes_gt[i_gt]
@@ -197,7 +214,7 @@ def calculate_confusion_matrix(df, cm_categories):
 
 
 # per-class + avg: P/R/F1
-def calculate_metrics(df, cm_categories: list, dataset_ids_gt, NONE_CLS):
+def calculate_metrics(df, cm_categories: list, dataset_ids, NONE_CLS):
     gt_classes = df["gt_class"].to_list()
     pred_classes = df["pred_class"].to_list()
 
@@ -210,9 +227,11 @@ def calculate_metrics(df, cm_categories: list, dataset_ids_gt, NONE_CLS):
 
     # Get some overall stats
     overall_stats = {}
-    overall_keys = ["micro avg", "macro avg", "weighted avg"]
+    overall_keys = ["micro avg", "macro avg", "weighted avg", "accuracy"]
     for key in overall_keys:
-        overall_stats[key] = per_class_stats.pop(key)
+        overall_stats[key] = per_class_stats.get(key, -1)
+        if per_class_stats.get(key) is not None:
+            per_class_stats.pop(key)
 
     # Per-class stats (IoU + AP)
     class2image_ids = {}  # image_id in GT
@@ -220,45 +239,52 @@ def calculate_metrics(df, cm_categories: list, dataset_ids_gt, NONE_CLS):
         if cls == NONE_CLS:
             continue
         cls_filtered = df[(df["gt_class"] == cls) | (df["pred_class"] == cls)]
-        gt = cls_filtered["gt_class"].to_list()
-        pred = cls_filtered["pred_class"].to_list()
-        gt = [int(x == cls) for x in gt]
-        pred = [int(x == cls) for x in pred]
-        AP = sklearn.metrics.average_precision_score(gt, pred) if len(gt) and len(pred) else -1
+        # gt = cls_filtered["gt_class"].to_list()
+        # pred = cls_filtered["pred_class"].to_list()
+        # gt = [int(x == cls) for x in gt]
+        # pred = [int(x == cls) for x in pred]
+        # AP = sklearn.metrics.average_precision_score(gt, pred) if len(gt) and len(pred) else -1
+        # per_class_stats[cls]["AP"] = AP
         avg_iou = cls_filtered["IoU"].mean()
         per_class_stats[cls]["IoU"] = avg_iou
-        per_class_stats[cls]["AP"] = AP
 
         class2image_ids[cls] = list(set(cls_filtered["image_id"]))
 
     # Overall for per-class avg.
-    overall_stats["mAP"] = np.mean([x["AP"] for x in per_class_stats.values() if x["AP"] != -1])
+    # overall_stats["mAP"] = np.mean([x["AP"] for x in per_class_stats.values() if x["AP"] != -1])
     overall_stats["mIoU"] = np.nanmean([x["IoU"] for x in per_class_stats.values()])
 
     # Per-dataset stats (IoU + AP)
     per_dataset_stats = {}  # dataset_id to stats
-    for dataset_id in dataset_ids_gt:
-        AP_per_class = []
+    for dataset_id in dataset_ids:
+        # AP_per_class = []
         ious_per_class = []
+        dataset_mask = df["dataset_id"] == dataset_id
         for cls in cm_categories:
             if cls == NONE_CLS:
                 continue
-            cls_filtered = df[
-                (df["dataset_id"] == dataset_id)
-                & ((df["gt_class"] == cls) | (df["pred_class"] == cls))
-            ]
-            gt = cls_filtered["gt_class"].to_list()
-            pred = cls_filtered["pred_class"].to_list()
-            gt = [int(x == cls) for x in gt]
-            pred = [int(x == cls) for x in pred]
-            if len(gt) and len(pred):
-                AP = sklearn.metrics.average_precision_score(gt, pred)
-                AP_per_class.append(AP)
+            cls_filtered = df[dataset_mask & ((df["gt_class"] == cls) | (df["pred_class"] == cls))]
+            # gt = cls_filtered["gt_class"].to_list()
+            # pred = cls_filtered["pred_class"].to_list()
+            # gt = [int(x == cls) for x in gt]
+            # pred = [int(x == cls) for x in pred]
+            # if len(gt) and len(pred):
+            #     AP = sklearn.metrics.average_precision_score(gt, pred)
+            #     AP_per_class.append(AP)
             avg_iou = cls_filtered["IoU"].mean()
             ious_per_class.append(avg_iou)
-        mAP = np.mean(AP_per_class)
+        # mAP = np.mean(AP_per_class)
         mIoU = np.nanmean(ious_per_class)
-        per_dataset_stats[dataset_id] = {"mAP": mAP, "mIoU": mIoU}
+
+        ds_filtered = df[dataset_mask]
+        ds_gt_classes = ds_filtered["gt_class"].to_list()
+        ds_pred_classes = ds_filtered["pred_class"].to_list()
+        ds_cls_report = sklearn.metrics.classification_report(
+            ds_gt_classes, ds_pred_classes, labels=cm_categories, output_dict=True
+        )
+
+        # per_dataset_stats[dataset_id] = {"mAP": mAP, "mIoU": mIoU}
+        per_dataset_stats[dataset_id] = {"mIoU": mIoU, "report": ds_cls_report["macro avg"]}
 
     return overall_stats, per_dataset_stats, per_class_stats
 
@@ -346,7 +372,10 @@ def collect_coco_annotations(
     for item in image_item.labels_iterator:
         if not isinstance(item.label.geometry, sly.Bitmap):
             continue
-        category_id = category_name_to_id[item.label.obj_class.name]
+        class_name = item.label.obj_class.name
+        if class_name not in category_name_to_id:
+            continue
+        category_id = category_name_to_id[class_name]
         mask_np = uncrop_bitmap(item.label.geometry, item.image_width, item.image_height)
         label_id = item.label.geometry.sly_id
         confidence = None
@@ -452,7 +481,8 @@ def collect_overall_metrics(overall_stats: dict, overall_coco: np.ndarray):
         "precision": macro["precision"],
         "recall": macro["recall"],
         "f1-score": macro["f1-score"],
-        "mAP": overall_stats["mAP"],
+        "N samples": macro["support"],
+        # "mAP": overall_stats["mAP"],
         "mIoU (mask)": overall_stats["mIoU"],
     }
     res = {k: [v] for k, v in res.items()}
@@ -463,7 +493,7 @@ def collect_overall_metrics(overall_stats: dict, overall_coco: np.ndarray):
 def collect_per_dataset_metrics(
     per_dataset_stats: dict,
     per_dataset_coco: np.ndarray,
-    dataset_ids_gt: list,
+    dataset_ids: list,
     dataset_names_gt: dict,
 ):
     res = [
@@ -471,9 +501,13 @@ def collect_per_dataset_metrics(
             "dataset_id": dataset_id,
             "dataset": dataset_names_gt[dataset_id],
             **coco_stats_to_dict(per_dataset_coco[dataset_id]),
-            "mIoU (mask)": per_dataset_stats[dataset_id]["mIoU"],
+            "precision": metrics["report"]["precision"],
+            "recall": metrics["report"]["recall"],
+            "f1-score": metrics["report"]["f1-score"],
+            "N samples": metrics["report"]["support"],
+            "mIoU (mask)": metrics["mIoU"],
         }
-        for dataset_id in dataset_ids_gt
+        for dataset_id, metrics in per_dataset_stats.items()
     ]
     res = format_table2(res)
     return res

@@ -19,7 +19,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "src.main_metrics_ui:app",
+                "src.main:app",
                 "--host",
                 "0.0.0.0",
                 "--port",

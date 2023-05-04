@@ -36,7 +36,7 @@ project_id_pred = 20644
 meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id_gt))
 categories = [{"id": i, "name": obj_cls.name} for i, obj_cls in enumerate(meta.obj_classes)]
 category_name_to_id = {c["name"]: c["id"] for c in categories}
-dataset_ids_gt = [ds.id for ds in api.dataset.get_list(project_id_gt)]
+dataset_ids = [ds.id for ds in api.dataset.get_list(project_id_gt)]
 image_ids = []
 
 # CM is of shape [GT x Pred]
@@ -81,7 +81,7 @@ df = utils.create_df(df_rows)
 confusion_matrix = utils.calculate_confusion_matrix(df, cm_categories)
 
 overall_stats, per_dataset_stats, per_class_stats = utils.calculate_metrics(
-    df, cm_categories, dataset_ids_gt, NONE_CLS
+    df, cm_categories, dataset_ids, NONE_CLS
 )
 
 overall_coco = utils.overall_metrics_coco(coco_gt, coco_dt)
@@ -93,7 +93,7 @@ for category in categories:
     per_class_coco[cat_id] = class_metrics
 
 per_dataset_coco = {}
-for dataset_id in dataset_ids_gt:
+for dataset_id in dataset_ids:
     dataset_metrics = utils.per_dataset_metrics_coco(coco_gt, coco_dt, dataset_id, images_coco)
     per_dataset_coco[dataset_id] = dataset_metrics
 

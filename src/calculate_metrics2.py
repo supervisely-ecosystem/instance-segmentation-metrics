@@ -70,7 +70,7 @@ df = utils.create_df(df_rows)
 confusion_matrix = utils.calculate_confusion_matrix(df, cm_categories_selected)
 
 overall_stats, per_dataset_stats, per_class_stats = utils.calculate_metrics(
-    df, cm_categories_selected, dataset_ids_gt, NONE_CLS
+    df, cm_categories_selected, dataset_ids, NONE_CLS
 )
 
 overall_coco = utils.overall_metrics_coco(coco_gt, coco_dt)
@@ -82,7 +82,7 @@ for cat_name in cm_categories_selected[:-1]:
     per_class_coco[cat_id] = class_metrics
 
 per_dataset_coco = {}
-for dataset_id in dataset_ids_gt:
+for dataset_id in dataset_ids:
     dataset_metrics = utils.per_dataset_metrics_coco(coco_gt, coco_dt, dataset_id, images_coco)
     per_dataset_coco[dataset_id] = dataset_metrics
 
