@@ -1,6 +1,6 @@
 <div align="center" markdown>
 
-<img src="https://user-images.githubusercontent.com/97401023/216125503-54544e16-a36e-453f-9b23-ba7729adb3e8.png" />
+<img src="https://user-images.githubusercontent.com/115161827/236404883-d3b880bb-d2ac-4409-aad5-b8fd53285de2.jpg" />
 
 
 # Instance Segmentation Metrics
@@ -12,11 +12,11 @@
   <a href="#Screenshot">Screenshot</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/classification-metrics)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/instance-segmentation-metrics)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/classification-metrics)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/classification-metrics.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/classification-metrics.png)](https://supervise.ly)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/instance-segmentation-metrics)
+[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervise.ly)
+[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervise.ly)
 
 </div>
 
