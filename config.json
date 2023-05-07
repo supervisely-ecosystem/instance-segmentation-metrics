@@ -5,9 +5,10 @@
   "description": "Evaluate your classification model",
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "port": 8000,
-  "icon": "https://user-images.githubusercontent.com/97401023/216119687-69ba445b-95a9-4353-8663-6d7352b3fbb3.png",
+  "icon": "https://user-images.githubusercontent.com/115161827/236404890-0d863a8f-419e-42ee-a780-add67d33292e.jpg",
+  "icon_cover": true,
   "icon_background": "#FFFFFF",
-  "poster": "https://user-images.githubusercontent.com/97401023/216125503-54544e16-a36e-453f-9b23-ba7729adb3e8.png",
+  "poster": "https://user-images.githubusercontent.com/115161827/236404883-d3b880bb-d2ac-4409-aad5-b8fd53285de2.jpg",
   "categories": [
     "neural network",
     "classification",
