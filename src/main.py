@@ -14,6 +14,7 @@ warn_ann_not_collected = NotificationBox(
 
 @calculate_metrics_button.click
 def on_calculate_metrics():
+    ui_metrics.reset_widgets()
     warn_ann_not_collected.hide()
     g.init_globals_for_metrics()
     r = calculate_metrics_f.calculate_metrics(g.ds_match)

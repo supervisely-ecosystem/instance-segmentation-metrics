@@ -18,6 +18,9 @@ except:
     from compute_overlap_slow import compute_overlap
 
 
+ROUND_N_DIGITS = 4
+
+
 def uncrop_bitmap(bitmap: sly.Bitmap, image_width, image_height):
     data = bitmap.data
     h, w = data.shape
@@ -252,13 +255,14 @@ def calculate_metrics(df, used_classes: list, dataset_ids, NONE_CLS):
         # AP = sklearn.metrics.average_precision_score(gt, pred) if len(gt) and len(pred) else -1
         # per_class_stats[cls]["AP"] = AP
         avg_iou = cls_filtered["IoU"].mean()
-        per_class_stats[cls]["IoU"] = avg_iou
+        per_class_stats[cls]["Avg. IoU"] = avg_iou
+        per_class_stats[cls]["N samples"] = per_class_stats[cls].pop("support")
 
         class2image_ids[cls] = list(set(cls_filtered["image_id"]))
 
     # Overall for per-class avg.
     # overall_stats["mAP"] = np.mean([x["AP"] for x in per_class_stats.values() if x["AP"] != -1])
-    overall_stats["mIoU"] = np.nanmean([x["IoU"] for x in per_class_stats.values()])
+    overall_stats["mIoU"] = np.nanmean([x["Avg. IoU"] for x in per_class_stats.values()])
 
     # Per-dataset stats (IoU + AP)
     per_dataset_stats = {}  # dataset_id to stats
@@ -297,26 +301,17 @@ def calculate_metrics(df, used_classes: list, dataset_ids, NONE_CLS):
 
 
 # Per-image
-def per_image_metrics(df, image_id, NONE_CLS):
-    df_img = df[df["image_id"] == image_id]
-    avg_iou = df_img["IoU"].mean()
-    TP = (df_img["gt_class"] == df_img["pred_class"]).sum()
-    FP = (df_img["class_match"].isna() & (df_img["gt_class"] == NONE_CLS)).sum()
-    FN = (df_img["class_match"].isna() & (df_img["pred_class"] == NONE_CLS)).sum()
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
-    return TP, FP, FN, precision, recall, avg_iou
-
-
-def per_image_metrics_table(df_match, dataset_names_gt, NONE_CLS):
+def per_image_metrics_table(df_match, dataset_names_gt, image_id_2_image_info, NONE_CLS):
     columns_metrics = ["TP", "FP", "FN", "precision", "recall", "Avg. IoU"]
-    columns = ["image_id", "dataset", *columns_metrics]
+    columns = ["image_id", "image_name", "dataset", *columns_metrics]
     rows = []
     for img_id, g in df_match.groupby("image_id"):
         row = per_image_metrics_for_group(g, NONE_CLS)
+        row = [round(float(x), ROUND_N_DIGITS) if isinstance(x, float) else x for x in row]
         dataset_id = g["dataset_id"].values[0]
         dataset_name = dataset_names_gt[dataset_id]
-        row = [img_id, dataset_name, *row]
+        image_name = image_id_2_image_info[img_id].name
+        row = [img_id, image_name, dataset_name, *row]
         rows.append(row)
     table = pd.DataFrame(rows, columns=columns)
     return table
@@ -333,10 +328,23 @@ def per_image_metrics_for_group(df_group, NONE_CLS):
 
 
 # Per-object
-def per_object_metrics(df, image_id):
-    res = df[df["image_id"] == image_id]
-    res = res.drop(columns=["gt_label_id", "pred_label_id", "dataset_id"])
-    return res
+def per_object_metrics(df, image_id, NONE_CLS, gt_class=None, pred_class=None):
+    if gt_class is None and pred_class is None:
+        res = df[df["image_id"] == image_id]
+    else:
+        res = df[
+            (df["image_id"] == image_id)
+            & (df["gt_class"] == gt_class)
+            & (df["pred_class"] == pred_class)
+        ]
+    gt_label_ids = res["gt_label_id"].to_list()
+    pred_label_ids = res["pred_label_id"].to_list()
+    res = res.drop(columns=["gt_label_id", "pred_label_id", "dataset_id", "image_id"])
+    res.loc[res["gt_class"] == NONE_CLS, "gt_class"] = ""
+    res.loc[res["pred_class"] == NONE_CLS, "pred_class"] = ""
+    res["IoU"] = res["IoU"].values.astype(float)
+    res["IoU"] = np.round(res["IoU"], ROUND_N_DIGITS)
+    return res, gt_label_ids, pred_label_ids
 
 
 def create_coco_annotation(mask_np, id, image_id, category_id, confidence=None):
@@ -465,7 +473,7 @@ def coco_stats_to_dict(coco_stats: np.ndarray):
     }
 
 
-def format_table(t: dict, n_digits=6):
+def format_table(t: dict, n_digits=4):
     # col : [rows]
     return {
         k: [round(float(x), n_digits) if isinstance(x, float) else x for x in rows]
@@ -473,7 +481,7 @@ def format_table(t: dict, n_digits=6):
     }
 
 
-def format_table2(t: dict, n_digits=6):
+def format_table2(t: dict, n_digits=4):
     # [rows]
     return [
         {k: round(float(x), n_digits) if isinstance(x, float) else x for k, x in row.items()}
@@ -488,12 +496,12 @@ def collect_overall_metrics(overall_stats: dict, overall_coco: np.ndarray):
         "precision": macro["precision"],
         "recall": macro["recall"],
         "f1-score": macro["f1-score"],
-        "N samples": macro["support"],
         # "mAP": overall_stats["mAP"],
         "mIoU (mask)": overall_stats["mIoU"],
+        "N samples": macro["support"],
     }
     res = {k: [v] for k, v in res.items()}
-    res = format_table(res)
+    res = format_table(res, ROUND_N_DIGITS)
     return res
 
 
@@ -511,12 +519,12 @@ def collect_per_dataset_metrics(
             "precision": metrics["report"]["precision"],
             "recall": metrics["report"]["recall"],
             "f1-score": metrics["report"]["f1-score"],
-            "N samples": metrics["report"]["support"],
             "mIoU (mask)": metrics["mIoU"],
+            "N samples": metrics["report"]["support"],
         }
         for dataset_id, metrics in per_dataset_stats.items()
     ]
-    res = format_table2(res)
+    res = format_table2(res, ROUND_N_DIGITS)
     return res
 
 
@@ -531,5 +539,5 @@ def collect_per_class_metrics(per_class_stats: dict, per_class_coco: dict, categ
         }
         for cat in categories
     ]
-    res = format_table2(res)
+    res = format_table2(res, ROUND_N_DIGITS)
     return res

@@ -12,7 +12,11 @@ api = sly.Api()
 project_id_gt = 20645
 project_id_pred = 20644
 
+# Interactive
 is_classes_selected = False
+clicked_image_id = None
+clicked_confusion_pair = None
+current_preview_table = None
 
 
 # meta

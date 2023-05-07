@@ -57,12 +57,12 @@ match_datasets_card = Card(
 
 ### 3. Match Tags
 match_tags_input = Input("_nn")
-match_tags_rematch_btn = Button("Rematch tags", button_size="small")
+match_tags_rematch_btn = Button("Rematch classes", button_size="small")
 match_tags_rematch_c = Container([match_tags_input, match_tags_rematch_btn])
 match_tags_input_f = Field(
     match_tags_rematch_c,
-    "Input suffix for Pred tags",
-    "If there is no matching you want due to suffix (like '_nn'), you can input it manually.",
+    "Input suffix for predicted class names",
+    "If there is no matching you want due to suffix (like '_nn'), you can input it manually (Usually you don't need to change this filed).",
 )
 match_tags = MatchObjClasses(selectable=True)
 match_tags_btn = Button("Select")
@@ -72,7 +72,7 @@ match_tags_container = Container(
     [match_tags_input_f, match_tags, match_tags_btn, match_tags_notif_note, match_tags_notif_warn]
 )
 match_tags_card = Card(
-    "Select tags",
+    "Select classes",
     "Choose classes that will be used for metrics.",
     True,
     match_tags_container,
@@ -113,9 +113,22 @@ def on_match_datasets():
 def rematch_tags():
     classes_gt = g.project_meta_gt.obj_classes
     classes_pred = g.project_meta_pred.obj_classes
+
+    # match suffix
     suffix = match_tags_input.get_value()
-    classes_pred_filtered = dataset_matching.filter_tags_by_suffix(classes_pred, suffix)
-    match_tags.set(classes_gt, classes_pred_filtered, "GT tags", "Pred tags", suffix=suffix)
+    classes_pred_filtered = dataset_matching.filter_classes_by_suffix(classes_pred, suffix)
+
+    # filter not acceptable geometry types
+    classes_pred_filtered = dataset_matching.filter_classes_by_shape(classes_pred_filtered)
+    classes_gt = dataset_matching.filter_classes_by_shape(classes_gt)
+
+    match_tags.set(
+        classes_gt,
+        classes_pred_filtered,
+        "Ground Truth classes",
+        "Prediction classes",
+        suffix=suffix,
+    )
 
 
 def on_select_tags():
@@ -127,10 +140,10 @@ def on_select_tags():
     if not g.is_classes_selected:
         if selected_tags:
             match_tags_notif_note.description = (
-                f"{len(selected_tags)} matched tags will be used for metrics."
+                f"{len(selected_tags)} classes will be used for metrics."
             )
             match_tags_notif_note.show()
-            match_tags_btn.text = "Reselect tags"
+            match_tags_btn.text = "Reselect classes"
             match_tags_btn._plain = True
             match_tags_btn._button_size = "small"
             match_tags_btn.update_data()
