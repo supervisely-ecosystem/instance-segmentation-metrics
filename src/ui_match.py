@@ -1,4 +1,3 @@
-import supervisely as sly
 from supervisely.app import DataJson
 from supervisely.app.widgets import (
     Container,
@@ -9,12 +8,7 @@ from supervisely.app.widgets import (
     Field,
     MatchObjClasses,
     Input,
-    Table,
-    Tabs,
     NotificationBox,
-    Text,
-    Checkbox,
-    Switch,
 )
 
 from src import dataset_matching

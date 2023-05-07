@@ -17,6 +17,7 @@ is_classes_selected = False
 clicked_image_id = None
 clicked_confusion_pair = None
 current_preview_table = None
+current_info = None
 
 
 # meta

@@ -5,7 +5,7 @@ from src.data_iterator import DataIteratorAPI, ImageLabelsIterator
 from src import globals as g
 
 
-def calculate_metrics(ds_match):
+def calculate_metrics(ds_match, pbar_cb=None):
     # populates globals: g.df, g.image_ids, g.image_ids_gt2pred, g.dataset_ids_matched, g.used_classes
 
     df_rows = []
@@ -19,6 +19,7 @@ def calculate_metrics(ds_match):
 
     for i, (dataset_name, item) in enumerate(ds_match.items()):
         if item["dataset_matched"] != "both":
+            pbar_cb()
             continue
         dataset_id = g.dataset_name_to_id[dataset_name]
         g.dataset_ids_matched.append(dataset_id)
@@ -63,6 +64,7 @@ def calculate_metrics(ds_match):
                 dataset_id=dataset_id,
             )
             annotations_pred += annotations
+        pbar_cb()
 
     # number of annotations must be > 0 to avoid a error from pycocotools
     if len(annotations_gt) == 0 or len(annotations_pred) == 0:
@@ -109,22 +111,3 @@ def set_globals(df, confusion_matrix, stats, coco):
     g.confusion_matrix = confusion_matrix
     g.overall_stats, g.per_dataset_stats, g.per_class_stats = stats
     g.overall_coco, g.per_dataset_coco, g.per_class_coco = coco
-
-
-# import pickle
-
-# with open("metrics.pkl", "wb") as f:
-#     stats = [overall_stats, per_dataset_stats, per_class_stats]
-#     coco = [overall_coco, per_dataset_coco, per_class_coco]
-#     pickle.dump([confusion_matrix, stats, coco], f)
-
-# df.to_csv("df.csv")
-
-# with open("image_ids_gt2pred.pkl", "wb") as f:
-#     pickle.dump(image_ids_gt2pred, f)
-
-# 18: car
-# 50: person
-# 53: plant
-# 9: bicycle
-# 44: motorcycle

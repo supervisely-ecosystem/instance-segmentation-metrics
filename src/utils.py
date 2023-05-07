@@ -328,23 +328,15 @@ def per_image_metrics_for_group(df_group, NONE_CLS):
 
 
 # Per-object
-def per_object_metrics(df, image_id, NONE_CLS, gt_class=None, pred_class=None):
-    if gt_class is None and pred_class is None:
-        res = df[df["image_id"] == image_id]
-    else:
-        res = df[
-            (df["image_id"] == image_id)
-            & (df["gt_class"] == gt_class)
-            & (df["pred_class"] == pred_class)
-        ]
-    gt_label_ids = res["gt_label_id"].to_list()
-    pred_label_ids = res["pred_label_id"].to_list()
-    res = res.drop(columns=["gt_label_id", "pred_label_id", "dataset_id", "image_id"])
-    res.loc[res["gt_class"] == NONE_CLS, "gt_class"] = ""
-    res.loc[res["pred_class"] == NONE_CLS, "pred_class"] = ""
-    res["IoU"] = res["IoU"].values.astype(float)
-    res["IoU"] = np.round(res["IoU"], ROUND_N_DIGITS)
-    return res, gt_label_ids, pred_label_ids
+def per_object_metrics(df_match, NONE_CLS):
+    gt_label_ids = df_match["gt_label_id"].to_list()
+    pred_label_ids = df_match["pred_label_id"].to_list()
+    df_match = df_match.drop(columns=["gt_label_id", "pred_label_id", "dataset_id", "image_id"])
+    df_match.loc[df_match["gt_class"] == NONE_CLS, "gt_class"] = ""
+    df_match.loc[df_match["pred_class"] == NONE_CLS, "pred_class"] = ""
+    df_match["IoU"] = df_match["IoU"].values.astype(float)
+    df_match["IoU"] = np.round(df_match["IoU"], ROUND_N_DIGITS)
+    return df_match, gt_label_ids, pred_label_ids
 
 
 def create_coco_annotation(mask_np, id, image_id, category_id, confidence=None):

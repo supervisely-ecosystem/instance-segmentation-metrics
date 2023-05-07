@@ -1,13 +1,14 @@
 import supervisely as sly
-from supervisely.app.widgets import Container, Button, NotificationBox
+from supervisely.app.widgets import Container, Button, NotificationBox, Progress
 
 from src import ui_match, ui_metrics, calculate_metrics_f
 from src import globals as g
 
 calculate_metrics_button = Button("Calculate metrics")
+calculate_metrics_progress = Progress("Collecting annotations...")
 warn_ann_not_collected = NotificationBox(
     "Annotations are not collected.",
-    "Can't collect at leaset one annotation for GT and Pred. Please select another classes.",
+    "Couldn't collect at least one annotation for GT and Pred. Please select other classes.",
     "warning",
 )
 
@@ -17,7 +18,9 @@ def on_calculate_metrics():
     ui_metrics.reset_widgets()
     warn_ann_not_collected.hide()
     g.init_globals_for_metrics()
-    r = calculate_metrics_f.calculate_metrics(g.ds_match)
+    pbar = calculate_metrics_progress(total=len(g.ds_match))
+    calculate_metrics_progress.show()
+    r = calculate_metrics_f.calculate_metrics(g.ds_match, pbar.update)
     if r is None:
         sly.logger.warn("Annotations are not collected")
         warn_ann_not_collected.show()
@@ -35,6 +38,7 @@ def on_select_tags():
         calculate_metrics_button.enable()
     else:
         calculate_metrics_button.disable()
+        ui_metrics.reset_widgets()
 
 
 @ui_match.change_datasets_btn.click
@@ -43,6 +47,7 @@ def reset_widgets():
     ui_metrics.reset_widgets()
     calculate_metrics_button.disable()
     warn_ann_not_collected.hide()
+    calculate_metrics_progress.hide()
 
 
 reset_widgets()
@@ -56,7 +61,9 @@ final_container = Container(
         ui_match.match_tags_card,
         calculate_metrics_button,
         warn_ann_not_collected,
+        calculate_metrics_progress,
         ui_metrics.tabs_card,
+        # ui_metrics.info_under_tabs,
         ui_metrics.inspect_card,
         ui_metrics.preview_container,
     ],
