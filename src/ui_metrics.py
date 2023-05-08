@@ -20,7 +20,7 @@ from supervisely.app.widgets import (
 
 
 ### Confusion Matrix
-confusion_matrix_widget = ConfusionMatrix()
+confusion_matrix_widget = ConfusionMatrix([[0]])
 
 
 ### Overall
