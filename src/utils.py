@@ -87,7 +87,7 @@ def collect_labels(image_item: DataIteratorAPI.ImageItem, category_name_to_id):
     return labels, classes, bboxes, bitmaps
 
 
-def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.25):
+def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.1):
     # shape: [pred, gt]
     n_pred, n_gt = pairwise_iou.shape
 
@@ -148,7 +148,7 @@ def collect_df_rows(
             np.array(bboxes_pred, dtype=np.float64), np.array(bboxes_gt, dtype=np.float64)
         )
         # below this threshold we treat two bboxes don't match
-        min_iou_threshold = 0.25
+        min_iou_threshold = 0.1
         matched_idxs, unmatched_idxs_gt, unmatched_idxs_pred, box_ious_matched = match_bboxes(
             pairwise_iou, min_iou_threshold
         )
@@ -302,7 +302,7 @@ def calculate_metrics(df, used_classes: list, dataset_ids, NONE_CLS):
 
 # Per-image
 def per_image_metrics_table(df_match, dataset_names_gt, image_id_2_image_info, NONE_CLS):
-    columns_metrics = ["TP", "FP", "FN", "precision", "recall", "Avg. IoU"]
+    columns_metrics = ["TP", "FP", "FN", "miss-classified", "precision", "recall", "Avg. IoU"]
     columns = ["image_id", "image_name", "dataset", *columns_metrics]
     rows = []
     for img_id, g in df_match.groupby("image_id"):
@@ -318,13 +318,17 @@ def per_image_metrics_table(df_match, dataset_names_gt, image_id_2_image_info, N
 
 
 def per_image_metrics_for_group(df_group, NONE_CLS):
-    TP = (df_group["gt_class"] == df_group["pred_class"]).sum()
-    FP = (df_group["class_match"].isna() & (df_group["gt_class"] == NONE_CLS)).sum()
-    FN = (df_group["class_match"].isna() & (df_group["pred_class"] == NONE_CLS)).sum()
+    tp_mask = df_group["gt_class"] == df_group["pred_class"]
+    fp_mask = df_group["class_match"].isna() & (df_group["gt_class"] == NONE_CLS)
+    fn_mask = df_group["class_match"].isna() & (df_group["pred_class"] == NONE_CLS)
+    TP = tp_mask.sum()
+    FP = fp_mask.sum()
+    FN = fn_mask.sum()
+    n_miss_classified = (~(tp_mask | fp_mask | fn_mask)).sum()
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
     avg_iou = df_group["IoU"].mean()
-    return TP, FP, FN, precision, recall, avg_iou
+    return TP, FP, FN, n_miss_classified, precision, recall, avg_iou
 
 
 # Per-object

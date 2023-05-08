@@ -19,7 +19,6 @@ def calculate_metrics(ds_match, pbar_cb=None):
 
     for i, (dataset_name, item) in enumerate(ds_match.items()):
         if item["dataset_matched"] != "both":
-            pbar_cb()
             continue
         dataset_id = g.dataset_name_to_id[dataset_name]
         g.dataset_ids_matched.append(dataset_id)
@@ -64,7 +63,8 @@ def calculate_metrics(ds_match, pbar_cb=None):
                 dataset_id=dataset_id,
             )
             annotations_pred += annotations
-        pbar_cb()
+
+            pbar_cb()
 
     # number of annotations must be > 0 to avoid a error from pycocotools
     if len(annotations_gt) == 0 or len(annotations_pred) == 0:

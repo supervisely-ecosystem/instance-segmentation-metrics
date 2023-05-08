@@ -73,7 +73,7 @@ preview_table = Table()
 preview_table_container = Container(
     [switch_show_all_annotations_f, preview_table_info, preview_table]
 )
-card_img_table = Card("Annotation list", content=preview_table_container, collapsable=False)
+card_img_table = Card("Image objects", content=preview_table_container, collapsable=False)
 
 ### preview container
 preview_container = Container([card_gallery, card_img_table], "horizontal", fractions=[8, 5])

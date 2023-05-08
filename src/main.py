@@ -5,7 +5,7 @@ from src import ui_match, ui_metrics, calculate_metrics_f
 from src import globals as g
 
 calculate_metrics_button = Button("Calculate metrics")
-calculate_metrics_progress = Progress("Collecting annotations...")
+calculate_metrics_progress = Progress()
 warn_ann_not_collected = NotificationBox(
     "Annotations are not collected.",
     "Couldn't collect at least one annotation for GT and Pred. Please select other classes.",
@@ -18,7 +18,8 @@ def on_calculate_metrics():
     ui_metrics.reset_widgets()
     warn_ann_not_collected.hide()
     g.init_globals_for_metrics()
-    pbar = calculate_metrics_progress(total=len(g.ds_match))
+    total = sum([len(item["matched"]) for item in g.ds_match.values() if item.get("matched")])
+    pbar = calculate_metrics_progress(message="Downloading annotations...", total=total)
     calculate_metrics_progress.show()
     r = calculate_metrics_f.calculate_metrics(g.ds_match, pbar.update)
     if r is None:
