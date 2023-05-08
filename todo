@@ -1,5 +1,11 @@
+bug with empty suffix
+docker_image
 убрать хардкоды в globals
 test compute_overlaps.pyx
+
+readme:
+    Related apps section
+    Full screenshot
 
 потом еще созвониться с Максом перед релизом
 

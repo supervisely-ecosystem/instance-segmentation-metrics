@@ -1,4 +1,4 @@
-supervisely==6.69.76
+supervisely==6.72.2
 scikit-learn
 pycocotools
 Cython
