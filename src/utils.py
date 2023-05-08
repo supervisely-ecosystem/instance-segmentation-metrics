@@ -387,7 +387,10 @@ def collect_coco_annotations(
         label_id = item.label.geometry.sly_id
         confidence = None
         if is_pred:
-            confidence = item.label.tags.get("confidence").value
+            conf_tag = item.label.tags.get("confidence")
+            if conf_tag is None:
+                raise Exception('Predicted labels must have tag "confidence".')
+            confidence = conf_tag.value
         annotation = create_coco_annotation(
             mask_np, label_id, image_id, category_id, confidence=confidence
         )
