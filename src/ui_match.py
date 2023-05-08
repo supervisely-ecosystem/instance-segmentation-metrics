@@ -109,16 +109,17 @@ def rematch_tags():
     classes_pred = g.project_meta_pred.obj_classes
 
     # match suffix
-    suffix = match_tags_input.get_value()
-    classes_pred_filtered = dataset_matching.filter_classes_by_suffix(classes_pred, suffix)
+    suffix = match_tags_input.get_value() or None
+    if suffix is not None:
+        classes_pred = dataset_matching.filter_classes_by_suffix(classes_pred, suffix)
 
     # filter not acceptable geometry types
-    classes_pred_filtered = dataset_matching.filter_classes_by_shape(classes_pred_filtered)
+    classes_pred = dataset_matching.filter_classes_by_shape(classes_pred)
     classes_gt = dataset_matching.filter_classes_by_shape(classes_gt)
 
     match_tags.set(
         classes_gt,
-        classes_pred_filtered,
+        classes_pred,
         "Ground Truth classes",
         "Prediction classes",
         suffix=suffix,
