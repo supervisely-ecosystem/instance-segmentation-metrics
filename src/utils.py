@@ -87,7 +87,7 @@ def collect_labels(image_item: DataIteratorAPI.ImageItem, category_name_to_id):
     return labels, classes, bboxes, bitmaps
 
 
-def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.1):
+def match_bboxes(pairwise_iou: np.ndarray, min_iou_threshold=0.15):
     # shape: [pred, gt]
     n_pred, n_gt = pairwise_iou.shape
 
@@ -148,7 +148,7 @@ def collect_df_rows(
             np.array(bboxes_pred, dtype=np.float64), np.array(bboxes_gt, dtype=np.float64)
         )
         # below this threshold we treat two bboxes don't match
-        min_iou_threshold = 0.1
+        min_iou_threshold = 0.15
         matched_idxs, unmatched_idxs_gt, unmatched_idxs_pred, box_ious_matched = match_bboxes(
             pairwise_iou, min_iou_threshold
         )
