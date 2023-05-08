@@ -27,7 +27,7 @@ This app calculates the instance segmentation metrics and allows you to explore 
 
 - Calculate **mAP** (mean Average Precision) and **AR** (Average Recall) metrics the same way as it's calculated in COCO challenge.
 - Calculate **IoU** to evaluate the mask accuracy.
-- Calculate **Precision** and **Recall** to assess the classification correctness.
+- Calculate **Precision** and **Recall** to assess classification correctness.
 - Interact with the app, explore Confusion Matrix, per-class and per-image metrics getting more insights about your instance segmentation model.
 
 
