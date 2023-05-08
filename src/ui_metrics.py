@@ -63,7 +63,7 @@ card_gallery = Card("Image preview", content=preview_image_container, collapsabl
 switch_show_all_annotations = Switch()
 switch_show_all_annotations_f = Field(
     switch_show_all_annotations,
-    "Show all annotations",
+    "Show all annotations for image",
     "By default the annotations are filtered by selected classes. Turn on to show all annotations for image instead.",
 )
 preview_table_info = NotificationBox(
