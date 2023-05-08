@@ -63,7 +63,6 @@ final_container = Container(
         warn_ann_not_collected,
         calculate_metrics_progress,
         ui_metrics.tabs_card,
-        # ui_metrics.info_under_tabs,
         ui_metrics.inspect_card,
         ui_metrics.preview_container,
     ],

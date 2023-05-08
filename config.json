@@ -1,8 +1,8 @@
 {
   "type": "app",
   "version": "2.0.0",
-  "name": "Classification metrics",
-  "description": "Evaluate your classification model",
+  "name": "Instance Segmentation Metrics",
+  "description": "Interactive evaluation of your instance segmentation model",
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "port": 8000,
   "icon": "https://user-images.githubusercontent.com/115161827/236404890-0d863a8f-419e-42ee-a780-add67d33292e.jpg",
@@ -11,7 +11,7 @@
   "poster": "https://user-images.githubusercontent.com/115161827/236404883-d3b880bb-d2ac-4409-aad5-b8fd53285de2.jpg",
   "categories": [
     "neural network",
-    "classification",
+    "instance segmentation",
     "images",
     "nn tools",
     "visualization",
