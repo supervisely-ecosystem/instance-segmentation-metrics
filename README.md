@@ -51,17 +51,19 @@ This app calculates the instance segmentation metrics and allows you to explore 
     - Check the **Overall** and **Per-class** tabs to see the metrics aggregated in various ways. All these tables are clickable too.
 
 
-# Related apps
+## Related apps
 
-1. [Train MMClassification](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmclassification/supervisely/train) app to train classification model on your data 
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmclassification/supervisely/train" src="https://i.imgur.com/mXG6njU.png" width="350px" style='padding-bottom: 10px'/>
+1. [Train MMDetection](https://ecosystem.supervisely.com/apps/mmdetection/train), [Train Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/train) apps to train an instance segmentation model on your data. 
+<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/train" src="https://i.imgur.com/mXG6njU.png" width="350px" style='padding-bottom: 10px'/> -->
 
-2. [Serve MMClassification](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmclassification/supervisely/serve) app to load classification model to be applied to your project
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmclassification/supervisely/serve" src="https://i.imgur.com/CU8XHdQ.png" width="350px" style='padding-bottom: 10px'/>
+2. [Serve MMDetection](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmclassification/supervisely/serve), [Serve Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/instance_segmentation/serve) apps to host a model that will be applied to your projects.
+<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmclassification/supervisely/serve" src="https://i.imgur.com/CU8XHdQ.png" width="350px" style='padding-bottom: 10px'/> -->
 
-3. [Apply Classifier to Images Project](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/apply-classification-model-to-project) app to apply classification model to your project
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-classification-model-to-project" src="https://github.com/supervisely-ecosystem/apply-classification-model-to-project/releases/download/v0.0.1/app-name-descrition.png" width="350px" style='padding-bottom: 10px'/>
+3. [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/nn-image-labeling/project-dataset) app to apply the served model to your project with images.
+<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-classification-model-to-project" src="https://github.com/supervisely-ecosystem/apply-classification-model-to-project/releases/download/v0.0.1/app-name-descrition.png" width="350px" style='padding-bottom: 10px'/> -->
 
-# Screenshot
+4. [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos.
 
-<img src="https://user-images.githubusercontent.com/97401023/216125292-2968dd8a-7e50-4c21-9f31-ebec4116b3f4.png" />
+## Screenshot
+
+<img src="https://user-images.githubusercontent.com/31512713/236821033-796e528e-a859-4394-9b2b-91919884d617.png" />
