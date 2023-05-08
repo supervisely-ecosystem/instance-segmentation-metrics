@@ -9,8 +9,8 @@ load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 api = sly.Api()
 
-project_id_gt = 20645
-project_id_pred = 20644
+project_id_gt = None
+project_id_pred = None
 
 # Interactive
 is_classes_selected = False
