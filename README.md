@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="#Overview">Overview</a> •
-  <a href="#How-to-Use">How to use</a> •
+  <a href="#How-to-Use">How to Use</a> •
   <a href="#Related-Apps">Related Apps</a> •
   <a href="#Screenshot">Screenshot</a>
 </p>
@@ -20,10 +20,10 @@
 
 </div>
 
-## Overview
+# Overview
 This app calculates the instance segmentation metrics and allows you to explore and understand the behavior of your model with interactive visualizations. It is achieved by comparing ground truth annotations with predictions.
 
-## Key features:
+# Key features:
 
 - Calculate **mAP** (mean Average Precision) and **AR** (Average Recall) metrics the same way as it's calculated in COCO challenge.
 - Calculate **IoU** to evaluate the mask accuracy.
@@ -31,7 +31,7 @@ This app calculates the instance segmentation metrics and allows you to explore 
 - Interact with the app, explore Confusion Matrix, per-class and per-image metrics to get more insights about your instance segmentation model.
 
 
-## How to use
+# How to use
 
 **Preparing the data:**
 - You need 2 projects, one with ground truth (GT) annotations and another with predicted masks.
@@ -51,19 +51,26 @@ This app calculates the instance segmentation metrics and allows you to explore 
     - Check the **Overall** and **Per-class** tabs to see the metrics aggregated in various ways. All these tables are clickable too.
 
 
-## Related apps
+# Related apps
 
-1. [Train MMDetection](https://ecosystem.supervisely.com/apps/mmdetection/train), [Train Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/train) apps to train an instance segmentation model on your data. 
-<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/train" src="https://i.imgur.com/mXG6njU.png" width="350px" style='padding-bottom: 10px'/> -->
+ - [Train MMDetection](https://ecosystem.supervisely.com/apps/mmdetection/train) - app to train an instance segmentation model on your data
+ <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/train" src="https://user-images.githubusercontent.com/115161827/236882770-782f2797-cd2e-46f4-849c-2c4f6a5d3e69.png" width="350px" style='padding-bottom: 10px'/>
 
-2. [Serve MMDetection](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmclassification/supervisely/serve), [Serve Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/instance_segmentation/serve) apps to host a model that will be applied to your projects.
-<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmclassification/supervisely/serve" src="https://i.imgur.com/CU8XHdQ.png" width="350px" style='padding-bottom: 10px'/> -->
+ - [Train Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/train) - app to train an instance segmentation model on your data <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/detectron2/supervisely/train" src="https://user-images.githubusercontent.com/115161827/236882766-e7f4a518-44f0-42df-8f7a-e3d2eae7099f.png" width="350px" style='padding-bottom: 10px'/>
 
-3. [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/nn-image-labeling/project-dataset) app to apply the served model to your project with images.
-<!-- <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-classification-model-to-project" src="https://github.com/supervisely-ecosystem/apply-classification-model-to-project/releases/download/v0.0.1/app-name-descrition.png" width="350px" style='padding-bottom: 10px'/> -->
+ - [Serve MMDetection](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmclassification/supervisely/serve) - app to host a model that will be applied to your projects
+ <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/serve" src="https://user-images.githubusercontent.com/115161827/236882764-c5120744-50b2-4d82-be19-9a8825ff0d46.png" width="350px" style='padding-bottom: 10px'/>
 
-4. [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos.
+ - [Serve Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/instance_segmentation/serve) - app to host a model that will be applied to your projects
+ <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/detectron2/supervisely/instance_segmentation/serve" src="https://user-images.githubusercontent.com/115161827/236882762-96d56c5f-33d4-4c28-8feb-21b245083989.png" width="350px" style='padding-bottom: 10px'/>
 
-## Screenshot
+ - [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/nn-image-labeling/project-dataset) app to apply the served model to your project with images
+ <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://user-images.githubusercontent.com/115161827/236882758-7378d1e6-88b7-461a-bdc2-3a625f7fc21a.png" width="350px" style='padding-bottom: 10px'/>
+
+ - [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos
+ <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://user-images.githubusercontent.com/115161827/236882750-98f53565-708c-4414-9554-98daf4b834eb.png" width="350px" style='padding-bottom: 10px'/>
+
+
+# Screenshot
 
 <img src="https://user-images.githubusercontent.com/31512713/236821033-796e528e-a859-4394-9b2b-91919884d617.png" />
