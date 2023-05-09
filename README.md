@@ -51,6 +51,11 @@ This app calculates the instance segmentation metrics and allows you to explore 
     - Check the **Overall** and **Per-class** tabs to see the metrics aggregated in various ways. All these tables are clickable too.
 
 
+# Screenshot
+
+<img src="https://user-images.githubusercontent.com/31512713/236821033-796e528e-a859-4394-9b2b-91919884d617.png" />
+
+
 # Related apps
 
  - [Train MMDetection](https://ecosystem.supervisely.com/apps/mmdetection/train) - app to train an instance segmentation model on your data
@@ -70,8 +75,3 @@ This app calculates the instance segmentation metrics and allows you to explore 
 
  - [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://user-images.githubusercontent.com/115161827/236882750-98f53565-708c-4414-9554-98daf4b834eb.png" width="350px" style='padding-bottom: 10px'/>
-
-
-# Screenshot
-
-<img src="https://user-images.githubusercontent.com/31512713/236821033-796e528e-a859-4394-9b2b-91919884d617.png" />
