@@ -1,24 +1,24 @@
 {
-  "type": "app",
-  "version": "2.0.0",
-  "name": "Instance Segmentation Metrics",
-  "description": "Interactive evaluation of your instance segmentation model",
-  "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
-  "docker_image": "supervisely/instance-segmentation-metrics:1.0.0",
-  "port": 8000,
-  "icon": "https://user-images.githubusercontent.com/12828725/237058342-e107ea8d-948a-476f-b24b-195de9a504d6.png",
-  "icon_cover": false,
-  "icon_background": "#FFFFFF",
-  "poster": "https://user-images.githubusercontent.com/115161827/236404883-d3b880bb-d2ac-4409-aad5-b8fd53285de2.jpg",
-  "categories": [
-    "neural network",
-    "instance segmentation",
-    "images",
-    "nn tools",
-    "visualization",
-    "exploration",
-    "statistics",
-    "visualization stats"
-  ],
-  "min_instance_version": "6.6.7"
+    "type": "app",
+    "version": "2.0.0",
+    "name": "Instance Segmentation Metrics",
+    "description": "Interactive evaluation of your instance segmentation model",
+    "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
+    "docker_image": "supervisely/collaboration:0.0.1",
+    "port": 8000,
+    "icon": "https://user-images.githubusercontent.com/12828725/237058342-e107ea8d-948a-476f-b24b-195de9a504d6.png",
+    "icon_cover": false,
+    "icon_background": "#FFFFFF",
+    "poster": "https://user-images.githubusercontent.com/115161827/236404883-d3b880bb-d2ac-4409-aad5-b8fd53285de2.jpg",
+    "categories": [
+        "neural network",
+        "instance segmentation",
+        "images",
+        "nn tools",
+        "visualization",
+        "exploration",
+        "statistics",
+        "visualization stats"
+    ],
+    "min_instance_version": "6.6.7"
 }
