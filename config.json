@@ -4,7 +4,7 @@
     "name": "Instance Segmentation Metrics",
     "description": "Interactive evaluation of your instance segmentation model",
     "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
-    "docker_image": "supervisely/visualization-stats:0.0.1",
+    "docker_image": "supervisely/visualization-stats:0.0.5",
     "port": 8000,
     "icon": "https://user-images.githubusercontent.com/12828725/237058342-e107ea8d-948a-476f-b24b-195de9a504d6.png",
     "icon_cover": false,
