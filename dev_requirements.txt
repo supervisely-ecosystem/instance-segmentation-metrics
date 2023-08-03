@@ -1,0 +1,4 @@
+supervisely==6.72.92
+scikit-learn
+pycocotools
+Cython
