@@ -38,6 +38,7 @@ selected_classes = []  # ["car", "person"]
 used_classes = []
 cm_used_classes = []
 ds_match = None
+desuffix_map: dict = None
 
 # calculated metrics
 df = None

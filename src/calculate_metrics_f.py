@@ -44,7 +44,7 @@ def calculate_metrics(ds_match, pbar_cb=None):
 
             # add DF rows
             new_rows = utils.collect_df_rows(
-                image_item_gt, image_item_pred, g.NONE_CLS, g.category_name_to_id
+                image_item_gt, image_item_pred, g.NONE_CLS, g.category_name_to_id, g.desuffix_map
             )
             df_rows += new_rows
 
@@ -61,6 +61,7 @@ def calculate_metrics(ds_match, pbar_cb=None):
                 is_pred=True,
                 image_id=image_id,
                 dataset_id=dataset_id,
+                desuffix_map=g.desuffix_map
             )
             annotations_pred += annotations
 

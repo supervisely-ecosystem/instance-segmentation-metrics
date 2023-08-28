@@ -2,7 +2,7 @@ from supervisely.app import DataJson
 from supervisely.app.widgets import (
     Container,
     Card,
-    SelectDataset,
+    SelectProject,
     Button,
     MatchDatasets,
     Field,
@@ -16,10 +16,8 @@ from src import globals as g
 
 
 ### 1. Select Datasets
-select_dataset_gt = SelectDataset(project_id=g.project_id_gt, multiselect=True)
-select_dataset_gt._all_datasets_checkbox.check()
-select_dataset_pred = SelectDataset(project_id=g.project_id_pred, multiselect=True)
-select_dataset_pred._all_datasets_checkbox.check()
+select_dataset_gt = SelectProject(default_id=g.project_id_gt)
+select_dataset_pred = SelectProject(default_id=g.project_id_pred)
 card_gt = Card(
     "Ground Truth Project", "Select project with ground truth labels", content=select_dataset_gt
 )
@@ -76,8 +74,8 @@ match_tags_card = Card(
 @match_datasets_btn.click
 def on_match_datasets():
     match_datasets_warn.hide()
-    project_id_gt = select_dataset_gt._project_selector.get_selected_id()
-    project_id_pred = select_dataset_pred._project_selector.get_selected_id()
+    project_id_gt = select_dataset_gt.get_selected_id()
+    project_id_pred = select_dataset_pred.get_selected_id()
     if project_id_gt is None or project_id_pred is None:
         raise Exception("Please, select a project and datasets")
     ds_gt = g.api.dataset.get_list(project_id_gt)
@@ -129,13 +127,18 @@ def rematch_tags():
 def on_select_tags():
     match_tags_notif_note.hide()
     match_tags_notif_warn.hide()
-    selected_tags = match_tags.get_selected()
-    # selected classes will be a union between selected GT and Pred
-    selected_tags = list(set([cls for pair in selected_tags for cls in pair if cls is not None]))
+    selected_pairs = match_tags.get_selected()
+    # Selected classes will be a union between selected GT and Pred
+    selected_classes = []
+    desuffix_map = {}
+    for pair in selected_pairs:
+        selected_classes.append(pair[0] or pair[1])
+        if pair[1] is not None:
+            desuffix_map[pair[1]] = pair[0] or pair[1]
     if not g.is_classes_selected:
-        if selected_tags:
+        if selected_classes:
             match_tags_notif_note.description = (
-                f"{len(selected_tags)} classes will be used for metrics."
+                f"{len(selected_classes)} class pairs will be used for metrics."
             )
             match_tags_notif_note.show()
             match_tags_btn.text = "Reselect classes"
@@ -146,9 +149,10 @@ def on_select_tags():
             match_tags_input.disable()
             match_tags_rematch_btn.disable()
             g.is_classes_selected = True
-            g.selected_classes = selected_tags
+            g.selected_classes = selected_classes
+            g.desuffix_map = desuffix_map
         else:
-            match_tags_notif_warn.description = f"Please, select at least 1 matched tag."
+            match_tags_notif_warn.description = f"Please, select at least 1 matched class."
             match_tags_notif_warn.show()
     else:
         match_tags_input.enable()

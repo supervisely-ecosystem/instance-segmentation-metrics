@@ -67,20 +67,26 @@ def iou_numpy(mask_pred: np.ndarray, mask_gt: np.ndarray):
     return iou
 
 
-def collect_labels(image_item: DataIteratorAPI.ImageItem, category_name_to_id):
+def collect_labels(image_item: DataIteratorAPI.ImageItem, category_name_to_id, desuffix_map=None):
     labels, classes, bboxes, bitmaps = [], [], [], []
 
     for item in image_item.labels_iterator:
         if not isinstance(item.label.geometry, sly.Bitmap):
             continue
         class_name = item.label.obj_class.name
+        if desuffix_map:
+            if class_name not in desuffix_map:
+                # when PRED dataset has both 'car' and 'car-model' classes,
+                # we keep only 'car-model'
+                continue
+            class_name = desuffix_map[class_name]
         if class_name not in category_name_to_id:
             continue
         label = item.label
         rect = label.geometry.to_bbox()
         bbox = rect.left, rect.top, rect.right, rect.bottom
         labels.append(label)
-        classes.append(label.obj_class.name)
+        classes.append(class_name)
         bboxes.append(bbox)
         bitmaps.append(label.geometry)
 
@@ -115,6 +121,7 @@ def collect_df_rows(
     image_item_pred: DataIteratorAPI.ImageItem,
     NONE_CLS: str,
     category_name_to_id: dict,
+    desuffix_map: dict
 ):
     # Remembering column names:
     # df_columns = [
@@ -136,7 +143,7 @@ def collect_df_rows(
         image_item_gt, category_name_to_id
     )
     labels_pred, classes_pred, bboxes_pred, bitmaps_pred = collect_labels(
-        image_item_pred, category_name_to_id
+        image_item_pred, category_name_to_id, desuffix_map=desuffix_map
     )
 
     if len(bboxes_gt) == 0 and len(bboxes_pred) == 0:
@@ -364,6 +371,7 @@ def collect_coco_annotations(
     is_pred,
     image_id=None,
     dataset_id=None,
+    desuffix_map=None
 ):
     if image_id is None:
         image_id = image_item.image_id
@@ -384,6 +392,12 @@ def collect_coco_annotations(
         if not isinstance(item.label.geometry, sly.Bitmap):
             continue
         class_name = item.label.obj_class.name
+        if desuffix_map:
+            if class_name not in desuffix_map:
+                # when PRED dataset has both 'car' and 'car-model' classes,
+                # we keep only 'car-model'
+                continue
+            class_name = desuffix_map[class_name]
         if class_name not in category_name_to_id:
             continue
         category_id = category_name_to_id[class_name]
@@ -391,7 +405,7 @@ def collect_coco_annotations(
         label_id = item.label.geometry.sly_id
         confidence = None
         if is_pred:
-            conf_tag = item.label.tags.get("confidence")
+            conf_tag = item.label.tags.get("confidence") or item.label.tags.get("confidence-model")
             if conf_tag is None:
                 raise Exception('Predicted labels must have tag "confidence".')
             confidence = conf_tag.value
