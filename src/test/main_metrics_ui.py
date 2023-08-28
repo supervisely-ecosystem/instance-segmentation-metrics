@@ -6,7 +6,7 @@ from src import globals as g
 from src import ui_metrics
 
 from . import utils
-from .data_iterator import DataIteratorAPI
+from ..data_iterator import DataIteratorAPI
 from supervisely.app import DataJson
 from supervisely.app.widgets import (
     ConfusionMatrix,
