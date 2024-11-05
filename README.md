@@ -12,11 +12,11 @@
   <a href="#Screenshot">Screenshot</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/instance-segmentation-metrics)
-[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/instance-segmentation-metrics)
+[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/instance-segmentation-metrics)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervise.ly)
+[![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervisely.com)
+[![runs](https://app.supervisely.com/img/badges/runs/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervisely.com)
 
 </div>
 
@@ -64,7 +64,7 @@ This app calculates the instance segmentation metrics and allows you to explore 
  - [Train Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/train) - app to train an instance segmentation model on your data
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/detectron2/supervisely/train" src="https://user-images.githubusercontent.com/115161827/236882766-e7f4a518-44f0-42df-8f7a-e3d2eae7099f.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Serve MMDetection](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/mmdetection/serve) - app to host a model that will be applied to your projects
+ - [Serve MMDetection](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/mmdetection/serve) - app to host a model that will be applied to your projects
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/serve" src="https://user-images.githubusercontent.com/115161827/236882764-c5120744-50b2-4d82-be19-9a8825ff0d46.png" width="350px" style='padding-bottom: 10px'/>
 
  - [Serve Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/instance_segmentation/serve) - app to host a model that will be applied to your projects
