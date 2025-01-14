@@ -18,7 +18,7 @@ class ProjectImagesIterator:
         datasets = self.api.dataset.get_list(project_id)
 
         for dataset in datasets:
-            ann_infos = self.api.annotation.get_list(dataset.id)
+            ann_infos = self.api.annotation.download_batch(dataset.id)
             for ann_info in ann_infos:
                 ann = sly.Annotation.from_json(ann_info.annotation, self.project_meta)
                 image_id = ann_info.image_id
@@ -77,7 +77,7 @@ class DataIteratorAPI:
         results = []
 
         for dataset in datasets:
-            ann_infos = self.api.annotation.get_list(dataset.id)
+            ann_infos = self.api.annotation.download_batch(dataset.id)
             for ann_info in ann_infos:
                 ann = sly.Annotation.from_json(ann_info.annotation, project_meta)
                 image_id = ann_info.image_id
