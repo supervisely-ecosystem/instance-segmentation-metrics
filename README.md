@@ -12,7 +12,7 @@
   <a href="#Screenshot">Screenshot</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/instance-segmentation-metrics)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/instance-segmentation-metrics)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/instance-segmentation-metrics)
 [![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervisely.com)
@@ -58,20 +58,20 @@ This app calculates the instance segmentation metrics and allows you to explore 
 
 # Related apps
 
- - [Train MMDetection](https://ecosystem.supervisely.com/apps/mmdetection/train) - app to train an instance segmentation model on your data
+ - [Train MMDetection](../../../../supervisely-ecosystem/mmdetection/train) - app to train an instance segmentation model on your data
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/train" src="https://user-images.githubusercontent.com/115161827/236882770-782f2797-cd2e-46f4-849c-2c4f6a5d3e69.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Train Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/train) - app to train an instance segmentation model on your data
+ - [Train Detectron2](../../../../supervisely-ecosystem/detectron2/supervisely/train) - app to train an instance segmentation model on your data
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/detectron2/supervisely/train" src="https://user-images.githubusercontent.com/115161827/236882766-e7f4a518-44f0-42df-8f7a-e3d2eae7099f.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Serve MMDetection](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/mmdetection/serve) - app to host a model that will be applied to your projects
+ - [Serve MMDetection](../../../../supervisely-ecosystem/mmdetection/serve) - app to host a model that will be applied to your projects
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/mmdetection/serve" src="https://user-images.githubusercontent.com/115161827/236882764-c5120744-50b2-4d82-be19-9a8825ff0d46.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Serve Detectron2](https://ecosystem.supervisely.com/apps/detectron2/supervisely/instance_segmentation/serve) - app to host a model that will be applied to your projects
+ - [Serve Detectron2](../../../../supervisely-ecosystem/detectron2/supervisely/instance_segmentation/serve) - app to host a model that will be applied to your projects
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/detectron2/supervisely/instance_segmentation/serve" src="https://user-images.githubusercontent.com/115161827/236882762-96d56c5f-33d4-4c28-8feb-21b245083989.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/nn-image-labeling/project-dataset) app to apply the served model to your project with images
+ - [Apply NN to Images Project](../../../../supervisely-ecosystem/nn-image-labeling/project-dataset) app to apply the served model to your project with images
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://user-images.githubusercontent.com/115161827/236882758-7378d1e6-88b7-461a-bdc2-3a625f7fc21a.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos
+ - [Apply NN to Videos Project](../../../../supervisely-ecosystem/apply-nn-to-videos-project) app to apply the served model to your project with videos
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://user-images.githubusercontent.com/115161827/236882750-98f53565-708c-4414-9554-98daf4b834eb.png" width="350px" style='padding-bottom: 10px'/>
