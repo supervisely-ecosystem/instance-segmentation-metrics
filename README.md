@@ -12,7 +12,7 @@
   <a href="#Screenshot">Screenshot</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/instance-segmentation-metrics)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/instance-segmentation-metrics)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/instance-segmentation-metrics)
 [![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/instance-segmentation-metrics.png)](https://supervisely.com)
@@ -73,5 +73,5 @@ This app calculates the instance segmentation metrics and allows you to explore 
  - [Apply NN to Images Project](https://ecosystem.supervisely.com/apps/nn-image-labeling/project-dataset) app to apply the served model to your project with images
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/nn-image-labeling/project-dataset" src="https://user-images.githubusercontent.com/115161827/236882758-7378d1e6-88b7-461a-bdc2-3a625f7fc21a.png" width="350px" style='padding-bottom: 10px'/>
 
- - [Apply NN to Videos Project](../../../../supervisely-ecosystem/apply-nn-to-videos-project) app to apply the served model to your project with videos
+ - [Apply NN to Videos Project](https://ecosystem.supervisely.com/apps/apply-nn-to-videos-project) app to apply the served model to your project with videos
  <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/apply-nn-to-videos-project" src="https://user-images.githubusercontent.com/115161827/236882750-98f53565-708c-4414-9554-98daf4b834eb.png" width="350px" style='padding-bottom: 10px'/>
