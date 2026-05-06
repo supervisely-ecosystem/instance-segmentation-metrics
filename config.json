@@ -20,5 +20,5 @@
         "statistics",
         "visualization stats"
     ],
-    "min_instance_version": "6.6.7"
+    "instance_version": "6.15.60"
 }
